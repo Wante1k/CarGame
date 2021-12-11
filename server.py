@@ -1,3 +1,4 @@
+import json
 import socket, time, pickle, random, pygame
 
 # create socket and initalize connection type
@@ -10,6 +11,7 @@ print(hostname)
 ip_address = socket.gethostbyname(hostname)
 # bind socket to port and ip address
 serversocket.bind((ip_address, 5555))
+print(ip_address)
 
 # listen for connections
 serversocket.listen()
@@ -29,7 +31,7 @@ connection = []
 speed = 3
 
 
-def process_positions(player_id, key_ids, position):
+def process_positions(player_id, key_ids):
     # key 0 up
     # key 1 down
     # key 2 left
@@ -37,8 +39,8 @@ def process_positions(player_id, key_ids, position):
 
     global speed
 
-    x = position["x"]
-    y = position["y"]
+    x = players_data[player_id]["x"]
+    y = players_data[player_id]["y"]
 
     for key_id in key_ids:
         if key_id == 0:
@@ -50,12 +52,9 @@ def process_positions(player_id, key_ids, position):
         elif key_id == 3:
             x += speed
 
-    return {
-        player_id: {
-            "x": x,
-            "y": y
-        }
-    }
+    players_data[player_id]["x"] = x
+    players_data[player_id]["y"] = y
+
 
 
 def waiting_for_connections():
@@ -67,19 +66,20 @@ def waiting_for_connections():
 
 
 def recieve_information():
-    player_1_info = pickle.loads(connection[0].recv(1024))
-    player_2_info = pickle.loads(connection[1].recv(1024))
+    # TODO: получить информацию от второго пользователя
+    recv_data = connection[0].recv(2048)
+    player_1_info = json.loads(recv_data.decode("utf-8"))
 
-    return player_1_info, player_2_info
+    return player_1_info #, player_2_info
 
 
+waiting_for_connections()
 while True:
-    waiting_for_connections()
+    raw = json.dumps(players_data, ensure_ascii=False).encode("utf-8")
+    connection[0].send(raw)
+    print(raw)
+    #connection[1].send(data_arr)
 
-    data_arr = pickle.dumps(players_data)
-    print(data_arr)
-    connection[0].send(data_arr)
-    connection[1].send(data_arr)
-
-    player1, player2 = recieve_information()
-    p_1_data =  process_positions("", player2)
+    player1_data = recieve_information()
+    # TODO: process position
+    p_1_data = process_positions("1", player1_data["keys"])
