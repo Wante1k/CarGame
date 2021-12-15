@@ -5,7 +5,7 @@ import socket
 
 player_id = input('id: ')
 sock = socket.socket()
-sock.connect(('172.20.10.5', 5555))
+sock.connect(('127.0.0.1', 5555))
 
 # colors
 RED = (255, 0, 0)
@@ -52,27 +52,33 @@ def send_data(data):
     sock.send(data_arr)
 
 
+def waiting_for_game_started():
+    data = recieve_data()
+    while not data.get('game', False):
+        data = recieve_data()
+    send_data({"keys": [0, 1], "id": player_id})
+
+
 # main game loop
 def main():
-
-    x_ball = 10
-    y_ball = 20
+    waiting_for_game_started()
     game_finished = False
+    print('Game started')
     while not game_finished:
         # set FPS
         clock.tick(120)
-
+        data = {}
         try:
             data = recieve_data()
+            print('data', data)
         except Exception as eror:
-            print(eror)
+            continue
 
         # Collect Game information. ex)Paddle position, Score, Ball position
         # draw background
         gameDisplay.fill(WHITE)
-        #TODO: отрисовать user 2
-        # draw_ball(x_ball, y_ball)
-        draw_ball(data[f"{player_id}"]["x"], data[f"{player_id}"]["y"])
+        for p_id in data['players_data'].keys():
+            draw_ball(data['players_data'][p_id]["x"], data['players_data'][p_id]["y"])
 
         pygame.display.update()
 
@@ -97,5 +103,4 @@ def main():
         send_data({"keys": pressed_keys, "id": player_id})
 
 
-while True:
-    main()
+main()
