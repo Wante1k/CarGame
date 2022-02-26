@@ -1,11 +1,11 @@
-import pygame, time, pickle, json
+import pygame, time, pickle, json, cargame, tasks
 
 pygame.init()
 import socket
 
 player_id = input('id: ')
 sock = socket.socket()
-sock.connect(('127.0.0.1', 5555))
+sock.connect(('127.0.1.1', 7777))
 
 # colors
 RED = (255, 0, 0)
@@ -19,6 +19,12 @@ GREEN = (0, 255, 0)
 display_width = 800
 display_height = 600
 
+paddle_width1 = 10
+paddle_height1 = 100
+
+paddle_width2 = 100
+paddle_height2 = 10
+
 # Lets pygame know what window to draw things too
 gameDisplay = pygame.display.set_mode((display_width, display_height))
 # initalize clock for FPS
@@ -27,17 +33,12 @@ clock = pygame.time.Clock()
 global message
 
 
-# draw paddles on screen
-def draw_paddles(x, y, p):
-    if p == 1:
-        pygame.draw.rect(gameDisplay, RED, [x, y, 10, 60])
-    if p == 2:
-        pygame.draw.rect(gameDisplay, BLUE, [x, y, 10, 60])
+def draw_paddle(x, y, p):
+    if p == "1":
+        pygame.draw.rect(gameDisplay, BLACK, [0, y, paddle_width1, paddle_height1])
+    if p == "2":
+        pygame.draw.rect(gameDisplay, BLACK, [x, y, paddle_height2, paddle_width2])
 
-
-# draw ball on screen
-def draw_ball(x, y):
-    pygame.draw.circle(gameDisplay, BLACK, [int(x), int(y)], 10)
 
 
 def recieve_data():
@@ -78,7 +79,7 @@ def main():
         # draw background
         gameDisplay.fill(WHITE)
         for p_id in data['players_data'].keys():
-            draw_ball(data['players_data'][p_id]["x"], data['players_data'][p_id]["y"])
+            draw_paddle(data['players_data'][p_id]["x"], data['players_data'][p_id]["y"], p_id)
 
         pygame.display.update()
 
