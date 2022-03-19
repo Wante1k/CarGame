@@ -22,6 +22,11 @@ class Car(pygame.sprite.Sprite):
 
     def update(self, deltat):
 
+        pygame.init()
+        myfont = pygame.font.SysFont("Comic Sans MC", 30)
+        label = myfont.render(f'speed: {self.speed}', 1, (255, 0, 0))
+        screen.blit(label, (10, 740))
+
         # print(self.k_left, "k_left")
         # print(self.k_right, "k_right")
         # print(self.k_up, "k_up")
@@ -43,10 +48,18 @@ class Car(pygame.sprite.Sprite):
         x += -self.speed * math.sin(rad)
         y += -self.speed * math.cos(rad)
 
-        if x(self.position) > SCREEN_WIDTH:
-            x(self.position) == 1024
-        elif y(self.position) > SCREEN_HEIGHT:
-            y(self.position) == 768
+        if x > SCREEN_WIDTH:
+            x = 1024
+            self.speed = 0
+        elif y > SCREEN_HEIGHT:
+            y = 768
+            self.speed = 0
+        if x < 0:
+            x = 0
+            self.speed = 0
+        elif y < 0:
+            y = 0
+            self.speed = 0
 
         self.position = (x, y)
         self.image = pygame.transform.rotate(self.src_image, self.direction)
@@ -54,12 +67,21 @@ class Car(pygame.sprite.Sprite):
         self.rect.center = self.position
 
 
+
 if __name__ == "__main__":
+
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     rect = screen.get_rect()
     car = Car('images/car.png', (200, 200))
-    car_group = pygame.sprite.RenderPlain(car)
+    car_greengroup = pygame.sprite.RenderPlain(car)
+    redcar = Car('images/red_car.png', (200, 200))
+    car_redgroup = pygame.sprite.RenderPlain(redcar)
+
+    fon = pygame.image.load("images/Трасса.png")
+    fonrect = fon.get_rect()
+
+
 
     while True:
         deltat = clock.tick(30)
@@ -76,8 +98,25 @@ if __name__ == "__main__":
                 car.k_down = down * -2
             elif event.key == K_ESCAPE:
                 sys.exit(0)  # quit the game
+        #
+        # while True:
+        #     deltat = clock.tick(30)
+        #     for event in pygame.event.get():
+        #         if not hasattr(event, 'key'): continue
+        #         down = event.type == KEYDOWN
+        #         if event.key == K_RIGHT:
+        #             car.k_right = down * -5
+        #         elif event.key == K_LEFT:
+        #             car.k_left = down * 5
+        #         elif event.key == K_UP:
+        #             car.k_up = down * 2
+        #         elif event.key == K_DOWN:
+        #             car.k_s = down * -2
 
         screen.fill((0, 0, 0))
-        car_group.update(deltat)
-        car_group.draw(screen)
+        screen.blit(fon, fonrect)
+        car_greengroup.update(deltat)
+        car_greengroup.draw(screen)
         pygame.display.flip()
+
+
