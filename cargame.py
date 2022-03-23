@@ -6,18 +6,22 @@ from pygame.locals import *
 SCREEN_WIDTH = 1024
 SCREEN_HEIGHT = 768
 
+
+
+
 class Car(pygame.sprite.Sprite):
     MAX_FORWARD_SPEED = 10
     MAX_REVERS_SPEED = -5
     ACCELERATION = 2
     TURN_SPEED = 10
 
-    def __init__(self, image, position):
+    def __init__(self, image, position, speed_font_offset=0):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 0
         self.direction = 0
         self.src_image = pygame.image.load(image)
         self.position = position
+        self.speed_font_offset = speed_font_offset
         self.k_left = self.k_right = self.k_down = self.k_up = 0
 
     def update(self, deltat):
@@ -25,7 +29,7 @@ class Car(pygame.sprite.Sprite):
         pygame.init()
         myfont = pygame.font.SysFont("Comic Sans MC", 30)
         label = myfont.render(f'speed: {self.speed}', 1, (255, 0, 0))
-        screen.blit(label, (10, 740))
+        screen.blit(label, (10 + self.speed_font_offset, 740))
 
         # print(self.k_left, "k_left")
         # print(self.k_right, "k_right")
@@ -66,18 +70,42 @@ class Car(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = self.position
 
+class PadSprite(pygame.sprite.Sprite):
+    normal = pygame.image.load('images/race_pads.png')
+    hit = pygame.image.load('images/collision.png')
+
+    def __init__(self, position, rotate):
+        super(PadSprite, self).__init__()
+        self.rect = pygame.Rect(self.normal.get_rect())
+        self.rect.center = position
+        self.rotate = pygame.transform.rotate()
+
+    def update(self ):
+        # hit_list
+        self.image = self.normal
+        # if self in hit_list:
+        #     self.image = self.hit
+        # else:
+        #     self.image = self.normal
 
 
 if __name__ == "__main__":
+
+    pads = [
+        PadSprite((575, 40), 90),
+        PadSprite((575, 585)),
+        PadSprite((575, ))
+    ]
+
+    pad_group = pygame.sprite.RenderPlain(*pads)
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     rect = screen.get_rect()
     car = Car('images/car.png', (200, 200))
     car_greengroup = pygame.sprite.RenderPlain(car)
-    redcar = Car('images/red_car.png', (200, 200))
+    redcar = Car('images/red_car.png', (210, 200), 200)
     car_redgroup = pygame.sprite.RenderPlain(redcar)
-
     fon = pygame.image.load("images/Трасса.png")
     fonrect = fon.get_rect()
 
@@ -96,7 +124,17 @@ if __name__ == "__main__":
                 car.k_up = down * 2
             elif event.key == K_DOWN:
                 car.k_down = down * -2
-            elif event.key == K_ESCAPE:
+
+            if event.key == K_d:
+                redcar.k_right = down * -5
+            elif event.key == K_a:
+                redcar.k_left = down * 5
+            elif event.key == K_w:
+                redcar.k_up = down * 2
+            elif event.key == K_s:
+                redcar.k_down = down * -2
+
+            if event.key == K_ESCAPE:
                 sys.exit(0)  # quit the game
         #
         # while True:
@@ -115,6 +153,10 @@ if __name__ == "__main__":
 
         screen.fill((0, 0, 0))
         screen.blit(fon, fonrect)
+        pad_group.update()
+        pad_group.draw(screen)
+        car_redgroup.update(deltat)
+        car_redgroup.draw(screen)
         car_greengroup.update(deltat)
         car_greengroup.draw(screen)
         pygame.display.flip()
