@@ -6,7 +6,9 @@ from pygame.locals import *
 SCREEN_WIDTH = 1024
 SCREEN_HEIGHT = 768
 
-
+pygame.init()
+font = pygame.font.Font(None, 75)
+win_font = pygame.font.Font(None, 50)
 
 
 class Car(pygame.sprite.Sprite):
@@ -25,8 +27,6 @@ class Car(pygame.sprite.Sprite):
         self.k_left = self.k_right = self.k_down = self.k_up = 0
 
     def update(self, deltat):
-
-        pygame.init()
         myfont = pygame.font.SysFont("Comic Sans MC", 30)
         label = myfont.render(f'speed: {self.speed}', 1, (255, 0, 0))
         screen.blit(label, (10 + self.speed_font_offset, 740))
@@ -76,13 +76,16 @@ class PadSprite(pygame.sprite.Sprite):
 
     def __init__(self, position, rotate):
         super(PadSprite, self).__init__()
-        self.rect = pygame.Rect(self.normal.get_rect())
-        self.rect.center = position
-        self.rotate = pygame.transform.rotate()
+        self.position = position
+        self.rotate = rotate
 
     def update(self ):
         # hit_list
-        self.image = self.normal
+        self.image = pygame.transform.rotate(self.normal, self.rotate)
+        self.rect = pygame.Rect(self.image.get_rect())
+        self.rect.center = self.position
+        self.mask = pygame.mask.from_surface(self.image)
+        self.image.set_alpha(0)
         # if self in hit_list:
         #     self.image = self.hit
         # else:
@@ -92,20 +95,25 @@ class PadSprite(pygame.sprite.Sprite):
 if __name__ == "__main__":
 
     pads = [
-        PadSprite((575, 40), 90),
-        PadSprite((575, 585)),
-        PadSprite((575, ))
+        PadSprite((575, 40), 0),
+        PadSprite((575, 585), 0),
+        PadSprite((300, 510), 335),
+        PadSprite((860, 510), 25),
+        PadSprite((300, 110), 25),
+        PadSprite((860, 105), 335),
+        PadSprite((150, 300), 90),
+        PadSprite((1009, 300), 90)
     ]
 
-    pad_group = pygame.sprite.RenderPlain(*pads)
+    pad_group = pygame.sprite.Group(pads)
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     rect = screen.get_rect()
-    car = Car('images/car.png', (200, 200))
-    car_greengroup = pygame.sprite.RenderPlain(car)
-    redcar = Car('images/red_car.png', (210, 200), 200)
-    car_redgroup = pygame.sprite.RenderPlain(redcar)
+    car = Car('images/car.png', (240, 200))
+    car_greengroup = pygame.sprite.Group(car)
+    redcar = Car('images/red_car.png', (245, 200), 200)
+    car_redgroup = pygame.sprite.Group(redcar)
     fon = pygame.image.load("images/Трасса.png")
     fonrect = fon.get_rect()
 
@@ -136,24 +144,29 @@ if __name__ == "__main__":
 
             if event.key == K_ESCAPE:
                 sys.exit(0)  # quit the game
-        #
-        # while True:
-        #     deltat = clock.tick(30)
-        #     for event in pygame.event.get():
-        #         if not hasattr(event, 'key'): continue
-        #         down = event.type == KEYDOWN
-        #         if event.key == K_RIGHT:
-        #             car.k_right = down * -5
-        #         elif event.key == K_LEFT:
-        #             car.k_left = down * 5
-        #         elif event.key == K_UP:
-        #             car.k_up = down * 2
-        #         elif event.key == K_DOWN:
-        #             car.k_s = down * -2
+
+        car_redgroup.update(deltat)
+        car_greengroup.update(deltat)
+        pad_group.update()
+
+        collisions_green = pygame.sprite.spritecollide(car, pad_group, False, pygame.sprite.collide_mask)
+        if collisions_green != {}:
+            timer_text = font.render("Crash!", True, (255, 0, 0))
+            car.image = pygame.image.load('images/collision.png')
+            loss_text = win_font.render('Press Space to Retry', True, (255, 0, 0))
+            seconds = 0
+
+        collisions_red = pygame.sprite.groupcollide(car_redgroup, pad_group, False, False)
+        if collisions_red != {}:
+            timer_text = font.render("Crash!", True, (255, 0, 0))
+            car.image = pygame.image.load('images/collision.png')
+            loss_text = win_font.render('Press Space to Retry', True, (255, 0, 0))
+        print(collisions_green)
 
         screen.fill((0, 0, 0))
         screen.blit(fon, fonrect)
-        pad_group.update()
+        # pad_group.update(collisions)
+
         pad_group.draw(screen)
         car_redgroup.update(deltat)
         car_redgroup.draw(screen)
