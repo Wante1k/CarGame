@@ -6,6 +6,7 @@ from pygame.locals import *
 SCREEN_WIDTH = 1024
 SCREEN_HEIGHT = 768
 
+
 pygame.init()
 font = pygame.font.Font(None, 75)
 win_font = pygame.font.Font(None, 50)
@@ -13,7 +14,7 @@ win_font = pygame.font.Font(None, 50)
 
 class Car(pygame.sprite.Sprite):
     MAX_FORWARD_SPEED = 7
-    MAX_REVERS_SPEED = -3
+    MAX_REVERS_SPEED = -4
     ACCELERATION = 2
     TURN_SPEED = 6
 
@@ -25,6 +26,7 @@ class Car(pygame.sprite.Sprite):
         self.position = position
         self.speed_font_offset = speed_font_offset
         self.k_left = self.k_right = self.k_down = self.k_up = 0
+        self.incollision = []
 
     def update(self, deltat):
         myfont = pygame.font.SysFont("Comic Sans MC", 30)
@@ -46,11 +48,21 @@ class Car(pygame.sprite.Sprite):
         elif self.speed < self.MAX_REVERS_SPEED:
             self.speed = self.MAX_REVERS_SPEED
 
+
+
         self.direction += (self.k_right + self.k_left)
         x, y = (self.position)
         rad = self.direction * math.pi / 180
         x += -self.speed * math.sin(rad)
         y += -self.speed * math.cos(rad)
+
+        # if self.incollision != []:
+        #     for collision in self.incollision:
+        #         pass
+
+        # if self.speed > 0 and self.incollision:
+        # elif self.speed < 0 and self.incollision:
+        #     self.speed = -1 * self.speed
 
         if x > SCREEN_WIDTH:
             x = 1024
@@ -85,7 +97,7 @@ class PadSprite(pygame.sprite.Sprite):
         self.rect = pygame.Rect(self.image.get_rect())
         self.rect.center = self.position
         self.mask = pygame.mask.from_surface(self.image)
-        self.image.set_alpha(0)
+        self.image.set_alpha(20)
         # if self in hit_list:
         #     self.image = self.hit
         # else:
@@ -150,16 +162,22 @@ if __name__ == "__main__":
         pad_group.update()
 
         collisions_green = pygame.sprite.spritecollide(car, pad_group, False, pygame.sprite.collide_mask)
-        if collisions_green != {}:
+
+        for collision in collisions_green:
+            print(collision.rect.x - car.position[0], collision.rect.y - car.position[1])
+
+        # pygame.draw.line(screen, 255, start_pos=-140, end_pos=-140)
+
+        if collisions_green != []:
             timer_text = font.render("Crash!", True, (255, 0, 0))
-            car.image = pygame.image.load('images/collision.png')
+            car.incollision = collisions_green
             loss_text = win_font.render('Press Space to Retry', True, (255, 0, 0))
-            seconds = 0
+        elif collisions_green == []:
+            car.incollision = False
 
         collisions_red = pygame.sprite.groupcollide(car_redgroup, pad_group, False, False)
-        if collisions_red != {}:
+        if collisions_red != []:
             timer_text = font.render("Crash!", True, (255, 0, 0))
-            car.image = pygame.image.load('images/collision.png')
             loss_text = win_font.render('Press Space to Retry', True, (255, 0, 0))
         print(collisions_green)
 
