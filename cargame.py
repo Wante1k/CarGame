@@ -12,10 +12,10 @@ win_font = pygame.font.Font(None, 50)
 
 
 class Car(pygame.sprite.Sprite):
-    MAX_FORWARD_SPEED = 10
-    MAX_REVERS_SPEED = -5
+    MAX_FORWARD_SPEED = 7
+    MAX_REVERS_SPEED = -3
     ACCELERATION = 2
-    TURN_SPEED = 10
+    TURN_SPEED = 6
 
     def __init__(self, image, position, speed_font_offset=0):
         pygame.sprite.Sprite.__init__(self)
