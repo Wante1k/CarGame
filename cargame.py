@@ -65,6 +65,30 @@ class Car(pygame.sprite.Sprite):
         # elif self.speed < 0 and self.incollision:
         #     self.speed = -1 * self.speed
 
+        if car.incollision:
+            p_x, p_y = pole.rect.center
+
+            if x > p_x:
+                x -= 10
+            elif x <= p_x:
+                x += 10
+            if y > p_y:
+                y -= 10
+            elif y <= p_y:
+                y += 10
+
+            # if x > p_x:
+            #     x -= 10
+            # elif x <= p_x:
+            #     x += 10
+            # if y > p_y:
+            #     y -= 10
+            # elif y <= p_y:
+            #     y += 10
+
+            a = p_x**2 / pole.rect.width**2 + p_y**2 / pole.rect.height**2
+            print(a)
+
         if x > SCREEN_WIDTH:
             x = 1024
             self.speed = 0
@@ -78,19 +102,6 @@ class Car(pygame.sprite.Sprite):
             y = 0
             self.speed = 0
 
-
-        if self.incollision:
-            pole_x, pole_y = self.pole.center
-            w = pole_x - x
-            h = pole_y - y - self.pole.height / 2
-
-            print(w, h)
-            if w > 0:
-                x += w - self.pole.width / 2
-            if w < 0:
-                x -= w + self.pole.width / 2
-
-
         self.position = (x, y)
         self.image = pygame.transform.rotate(self.src_image, self.direction)
         self.rect = self.image.get_rect()
@@ -98,6 +109,7 @@ class Car(pygame.sprite.Sprite):
 
 
 class PadSprite(pygame.sprite.Sprite):
+    intr = pygame.image.load("images/intr.png")
     normal = pygame.image.load('images/Трасса.png')
     hit = pygame.image.load('images/collision.png')
 
@@ -127,6 +139,10 @@ if __name__ == "__main__":
     pole = PadSprite((505, 340), 0)
     pads = [
         pole
+    ]
+    intr = PadSprite((0, 0), 0)
+    pads = [
+        intr
     ]
 
     pad_group = pygame.sprite.Group(pads)
