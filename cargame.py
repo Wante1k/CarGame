@@ -140,12 +140,13 @@ if __name__ == "__main__":
     pads = [
         pole
     ]
-    intr = PadSprite((0, 0), 0)
-    pads = [
+    intr = PadSprite((505, 340), 0)
+    pads2 = [
         intr
     ]
 
     pad_group = pygame.sprite.Group(pads)
+    pad_group2 = pygame.sprite.Group(pads2)
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
@@ -207,6 +208,7 @@ if __name__ == "__main__":
         # pad_group.update(collisions)
 
         pad_group.draw(screen)
+        pad_group2.draw(screen)
         car_redgroup.update(deltat)
         car_redgroup.draw(screen)
         car_greengroup.update(deltat)
