@@ -65,17 +65,27 @@ class Car(pygame.sprite.Sprite):
         # elif self.speed < 0 and self.incollision:
         #     self.speed = -1 * self.speed
 
-        if car.incollision:
+        print(car.incollision)
+        if car.incollision is not None:
             p_x, p_y = pole.rect.center
-
-            if x > p_x:
-                x -= 10
-            elif x <= p_x:
-                x += 10
-            if y > p_y:
-                y -= 10
-            elif y <= p_y:
-                y += 10
+            if car.incollision:
+                if x > p_x:
+                    x -= 10
+                elif x <= p_x:
+                    x += 10
+                if y > p_y:
+                    y -= 10
+                elif y <= p_y:
+                    y += 10
+            else:
+                if x > p_x:
+                    x += 10
+                elif x <= p_x:
+                    x -= 10
+                if y > p_y:
+                    y += 10
+                elif y <= p_y:
+                    y -= 10
 
             # if x > p_x:
             #     x -= 10
@@ -113,17 +123,18 @@ class PadSprite(pygame.sprite.Sprite):
     normal = pygame.image.load('images/Трасса.png')
     hit = pygame.image.load('images/collision.png')
 
-    def __init__(self, position, rotate):
+    def __init__(self, position, rotate, type = None):
         super(PadSprite, self).__init__()
         self.position = position
         self.rotate = rotate
-        self.image = pygame.transform.rotate(self.normal, self.rotate)
+        self.type = type
+        self.image = pygame.transform.rotate(self.intr if type == 'intr' else self.normal, self.rotate)
         self.rect = pygame.Rect(self.image.get_rect())
         self.rect.center = self.position
 
-    def update(self ):
+    def update(self):
         # hit_list
-        self.image = pygame.transform.rotate(self.normal, self.rotate)
+        self.image = pygame.transform.rotate(self.intr if self.type == 'intr' else self.normal, self.rotate)
         self.rect = pygame.Rect(self.image.get_rect())
         self.rect.center = self.position
         self.mask = pygame.mask.from_surface(self.image)
@@ -137,29 +148,24 @@ class PadSprite(pygame.sprite.Sprite):
 if __name__ == "__main__":
 
     pole = PadSprite((505, 340), 0)
-    pads = [
-        pole
-    ]
-    intr = PadSprite((505, 340), 0)
-    pads2 = [
-        intr
-    ]
+    pad_group = pygame.sprite.Group([pole])
 
-    pad_group = pygame.sprite.Group(pads)
-    pad_group2 = pygame.sprite.Group(pads2)
+    intr = PadSprite((505, 340), 0, 'intr')
+    pad_group_intr = pygame.sprite.Group([intr])
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     rect = screen.get_rect()
     car = Car('images/car.png', (240, 200), pole.rect)
     car_greengroup = pygame.sprite.Group(car)
-    redcar = Car('images/red_car.png', (245, 200), pole.rect.center, 200)
-    car_redgroup = pygame.sprite.Group(redcar)
+    # redcar = Car('images/red_car.png', (245, 200), pole.rect.center, 200)
+    # car_redgroup = pygame.sprite.Group(redcar)
     # fon = pygame.image.load("images/Трасса.png")
     # fonrect = fon.get_rect()
 
 
 
+    t = 0
     while True:
         deltat = clock.tick(30)
         for event in pygame.event.get():
@@ -174,45 +180,47 @@ if __name__ == "__main__":
             elif event.key == K_DOWN:
                 car.k_down = down * -2
 
-            if event.key == K_d:
-                redcar.k_right = down * -5
-            elif event.key == K_a:
-                redcar.k_left = down * 5
-            elif event.key == K_w:
-                redcar.k_up = down * 2
-            elif event.key == K_s:
-                redcar.k_down = down * -2
+            # if event.key == K_d:
+            #     redcar.k_right = down * -5
+            # elif event.key == K_a:
+            #     redcar.k_left = down * 5
+            # elif event.key == K_w:
+            #     redcar.k_up = down * 2
+            # elif event.key == K_s:
+            #     redcar.k_down = down * -2
 
             if event.key == K_ESCAPE:
                 sys.exit(0)  # quit the game
 
-        car_redgroup.update(deltat)
+        # car_redgroup.update(deltat)
         car_greengroup.update(deltat)
         pad_group.update()
 
         collisions_green = pygame.sprite.spritecollide(car, pad_group, False, pygame.sprite.collide_mask)
+        collisions_green2 = pygame.sprite.spritecollide(car, pad_group_intr, False, pygame.sprite.collide_mask)
         # pygame.draw.line(screen, 255, start_pos=-140, end_pos=-140)
 
-        if collisions_green != []:
-            car.incollision = False
-        elif collisions_green == []:
-            car.incollision = True
+        # True - за пределами трассы
+        # False - за пределами трассы внутри
+        # None - на трассе
+        print(collisions_green, collisions_green2)
+        car.incollision = None if collisions_green != [] and collisions_green2 == [] else (collisions_green == [] and collisions_green2 == [])
 
-        collisions_red = pygame.sprite.groupcollide(car_redgroup, pad_group, False, False)
-        if collisions_red != []:
-            timer_text = font.render("Crash!", True, (255, 0, 0))
-            loss_text = win_font.render('Press Space to Retry', True, (255, 0, 0))
-
+        # print(t)
+        # if t == 15:
+        #     t = 0
         screen.fill((0, 0, 0))
         # screen.blit(fon, fonrect)
-        # pad_group.update(collisions)
-
+        pad_group.update()
         pad_group.draw(screen)
-        pad_group2.draw(screen)
-        car_redgroup.update(deltat)
-        car_redgroup.draw(screen)
+        pad_group_intr.update()
+        pad_group_intr.draw(screen)
+        # pad_group2.draw(screen)
+        # car_redgroup.update(deltat)
+        # car_redgroup.draw(screen)
         car_greengroup.update(deltat)
         car_greengroup.draw(screen)
         pygame.display.flip()
+        # t+=1
 
 
